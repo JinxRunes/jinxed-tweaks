@@ -1,0 +1,215 @@
+<section class="cc-hub-app">
+  {{#*inline "ccHubFolderGroups"}}
+    {{#each nodes}}
+      <details class="cc-hub-type-group cc-hub-folder-group{{#if ../categoryFolders}} cc-hub-category-folder-group{{/if}}" data-group-key="{{this.key}}" {{#if this.isOpen}}open{{/if}}>
+        <summary class="cc-hub-folder-group-heading{{#if ../categoryFolders}} cc-hub-category-folder-heading{{/if}}"
+                 {{#if this.folderId}}data-folder-id="{{this.folderId}}"{{/if}}
+                 {{#if this.folderCreatable}}data-folder-creatable="true"{{/if}}>
+          <span><i class="{{this.icon}} cc-hub-folder-icon"></i> {{this.label}}</span>
+          <span class="cc-hub-type-count">{{this.count}}</span>
+        </summary>
+        {{#if this.isOpen}}
+          <div class="cc-hub-folder-contents">
+            {{#if this.items.length}}
+              <div class="cc-hub-type-items">
+                {{#each this.items}}
+                  <button type="button" class="cc-hub-sheet-link {{#if this.isSelected}}active{{/if}}" data-action="selectSheet"
+                          data-uuid="{{this.uuid}}" data-search-match-tab="{{this.searchMatchTab}}"
+                          draggable="true" data-drag="true" data-entry-id="{{this.id}}">
+                    <i class="{{this.icon}}"></i>
+                    <span>{{this.name}}</span>
+                  </button>
+                {{/each}}
+              </div>
+            {{/if}}
+            {{#if this.children.length}}
+              <div class="cc-hub-folder-children">
+                {{> ccHubFolderGroups nodes=this.children categoryFolders=../categoryFolders}}
+              </div>
+            {{/if}}
+          </div>
+        {{/if}}
+      </details>
+    {{/each}}
+  {{/inline}}
+  <div class="cc-hub-layout">
+    <aside class="cc-hub-sidebar">
+      <button type="button" class="cc-hub-home-button {{#if isHome}}active{{/if}}" data-action="showHome">
+        <i class="fas fa-house"></i>
+        <span>Hub Home</span>
+        <span class="cc-hub-total">{{totalSheets}}</span>
+      </button>
+      
+      <div class="cc-hub-group-modes" role="group" aria-label="Group sheets by">
+        <button type="button" data-action="setGroupMode" data-group-mode="type"
+                class="{{#if (eq groupMode 'type')}}active{{/if}}" title="Group by sheet type">
+          <i class="fas fa-shapes"></i><span>Type</span>
+        </button>
+        <button type="button" data-action="setGroupMode" data-group-mode="label"
+                class="{{#if (eq groupMode 'label')}}active{{/if}}" title="Group by type label override, falling back to sheet type">
+          <i class="fas fa-tag"></i><span>Label</span>
+        </button>
+        <button type="button" data-action="setGroupMode" data-group-mode="folder"
+                class="{{#if (eq groupMode 'folder')}}active{{/if}}" title="Group by Journal folder">
+          <i class="fas fa-folder-tree"></i><span>Folder</span>
+        </button>
+      </div>
+
+      <div class="cc-hub-search">
+        <button type="button" class="cc-hub-search-mode {{#if isContentSearch}}active{{/if}}" data-action="toggleSearchMode"
+                title="{{searchModeTitle}}" aria-label="{{searchModeTitle}}" aria-pressed="{{isContentSearch}}">
+          <i class="fas {{#if isContentSearch}}fa-file-magnifying-glass{{else}}fa-magnifying-glass{{/if}}"></i>
+        </button>
+        <input type="search" id="hub-title-filter" value="{{searchQuery}}" placeholder="{{searchPlaceholder}}" aria-label="{{searchPlaceholder}}">
+      </div>
+
+
+      <nav class="cc-hub-sheet-groups" aria-label="Campaign Codex sheets">
+
+        {{#if hasResults}}
+          {{#if isFolderGroupMode}}
+            {{> ccHubFolderGroups nodes=groups}}
+          {{else}}
+            {{#each groups}}
+              <details class="cc-hub-type-group{{#if this.hasCategoryFolders}} cc-hub-type-group-has-folders{{/if}}" data-group-key="{{this.key}}" {{#if this.isOpen}}open{{/if}}>
+                <summary class="cc-hub-type-group-heading" data-type-group-key="{{this.key}}">
+                  <span><i class="{{this.icon}}"></i> {{this.label}}</span>
+                  <span class="cc-hub-type-count">{{this.count}}</span>
+                </summary>
+                {{#if this.isOpen}}
+                  <div class="cc-hub-folder-contents cc-hub-type-contents">
+                    {{#if this.folderChildren.length}}
+                      <div class="cc-hub-folder-children cc-hub-category-folder-tree">
+                        {{> ccHubFolderGroups nodes=this.folderChildren categoryFolders=true}}
+                      </div>
+                    {{/if}}
+                    {{#if this.rootItems.length}}
+                      <div class="cc-hub-type-items">
+                        {{#each this.rootItems}}
+                          <button type="button" class="cc-hub-sheet-link {{#if this.isSelected}}active{{/if}}" data-action="selectSheet"
+                                  data-uuid="{{this.uuid}}" data-search-match-tab="{{this.searchMatchTab}}"
+                                  draggable="true" data-drag="true" data-entry-id="{{this.id}}">
+                            <i class="{{this.icon}}"></i>
+                            <span>{{this.name}}</span>
+                          </button>
+                        {{/each}}
+                      </div>
+                    {{/if}}
+                  </div>
+                {{/if}}
+              </details>
+            {{/each}}
+          {{/if}}
+        {{else}}
+          <div class="cc-hub-empty-list">
+            <i class="fas fa-filter"></i>
+            <span>No matching sheets</span>
+          </div>
+        {{/if}}
+      </nav>
+     {{#if isGM}} 
+      <section class="cc-hub-filter-panel" aria-label="Tag filters">
+        <div class="cc-hub-filter-heading">
+          <span><i class="fas fa-tags"></i> Tags</span>
+          <div class="cc-hub-filter-actions">
+            <button type="button" data-action="toggleFilterMode" title="Toggle AND/OR matching">{{includeModeLabel}}</button>
+            <button type="button" data-action="clearTagFilters" title="Clear tag filters" {{#unless hasActiveTagFilters}}disabled{{/unless}}>
+              <i class="fas fa-filter-circle-xmark"></i>
+            </button>
+          </div>
+        </div>
+        {{#if tagCloud.length}}
+          <div class="cc-hub-tag-cloud">
+            {{#each tagCloud}}
+              <button type="button" class="cc-hub-tag {{this.state}}" data-action="toggleTagFilter" data-tag-id="{{this.id}}" title="Left-click includes; right-click excludes">
+                <span>{{this.name}}</span>
+                <span class="cc-hub-tag-count">{{this.count}}</span>
+              </button>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="notes cc-hub-no-tags">No tags</p>
+        {{/if}}
+      </section>  {{/if}}    
+    </aside>
+
+    <main class="cc-hub-main">
+      {{#if isHome}}
+        <section class="cc-hub-dashboard">
+          <header class="cc-hub-dashboard-header">
+            <div class="cc-hub-dashboard-mark"><i class="fas fa-house"></i></div>
+            <div>
+              <p class="cc-hub-eyebrow">Campaign Codex</p>
+              <h1>Campaign Hub</h1>
+              <p>{{totalSheets}} sheets available to you</p>
+            </div>
+          </header>
+
+          <div class="cc-hub-stat-grid">
+            {{#each dashboardStats}}
+              <button type="button" class="cc-hub-stat-card type-{{this.type}}" data-action="browseSheetType" data-type="{{this.type}}" title="Browse {{this.label}}">
+                <div class="cc-hub-stat-icon"><i class="{{this.icon}}"></i></div>
+                <div class="cc-hub-stat-copy">
+                  <strong>{{this.count}}</strong>
+                  <span>{{this.label}}</span>
+                </div>
+              </button>
+            {{/each}}
+          </div>
+
+        </section>
+      {{else}}
+        {{#if isTypeBrowser}}
+          <section class="cc-hub-type-browser">
+            <div class="content-header">
+              <h2 class="cc-hub-browser-title">
+                <button type="button" class="cc-hub-browser-home" data-action="showHome">Home</button>
+                <span class="cc-hub-browser-separator">&bull;</span>
+                <span>{{typeBrowser.label}}</span>
+              </h2>
+            </div>
+            {{#if typeBrowser.items.length}}
+              <div class="entity-grid">
+                {{#each typeBrowser.items}}
+                  <button type="button" class="entity-card cc-hub-browser-card {{#unless this.showImage}}hide-entity-image{{/unless}}"
+                          data-action="selectSheet" data-uuid="{{this.uuid}}" data-entry-id="{{this.id}}"
+                          draggable="true" data-drag="true">
+                    {{#if this.showImage}}
+                      <div class="entity-image">
+                        <img src="{{this.img}}" alt="{{this.name}}" loading="lazy" decoding="async">
+                      </div>
+                    {{/if}}
+                    <div class="entity-content">
+                      <h4 class="entity-name">{{this.name}}</h4>
+                      {{#if this.tags.length}}
+                        <div class="entity-locations">
+                          <i class="fas fa-tag"></i>
+                          {{#each this.tags}}<span class="location-tag">{{this}}</span>{{/each}}
+                        </div>
+                      {{/if}}
+                    </div>
+                  </button>
+                {{/each}}
+              </div>
+            {{else}}
+              <div class="empty-state">
+                <i class="{{typeBrowser.icon}}"></i>
+                <h3>No {{typeBrowser.label}}</h3>
+              </div>
+            {{/if}}
+          </section>
+        {{else}}
+          {{#if previewError}}
+            <section class="cc-hub-preview-error">
+              <i class="fas fa-triangle-exclamation"></i>
+              <h2>Preview unavailable</h2>
+              <p>{{previewErrorMessage}}</p>
+            </section>
+          {{else}}
+            {{{selectedSheetContent}}}
+          {{/if}}
+        {{/if}}
+      {{/if}}
+    </main>
+  </div>
+</section>

@@ -1,0 +1,685 @@
+/* Jinxed Tweaks — shared override styles.
+ * Per-module CSS may also be injected from tweak modules at runtime.
+ */
+
+/* Match the dark-gray canvas void before/around WebGL (stock Foundry is #999). */
+html,
+body,
+body.game {
+  background: #2a2a2a;
+}
+
+/* Bossbar: keep the Application chrome transparent on hover so there is no
+ * dark background box. Drag/move still works via the invisible header hit area.
+ */
+#boss-bar,
+#boss-bar:hover {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+#boss-bar .window-content,
+#boss-bar:hover .window-content {
+  background: transparent;
+  backdrop-filter: none;
+}
+
+#boss-bar .window-header,
+#boss-bar:hover .window-header {
+  opacity: 0;
+}
+
+#boss-bar .window-resize-handle,
+#boss-bar:hover .window-resize-handle {
+  opacity: 0;
+}
+
+/* Hotbar: fully hidden until hovered (macro slots + page/menu controls).
+ * Hit area still receives pointer events while invisible so hover can reveal it.
+ * During HTML5 drag, :hover does not fire — `.jinxed-drag-reveal` is toggled from JS
+ * when the pointer is near the bottom / over the hotbar so drops still work.
+ */
+#hotbar.faded-ui {
+  opacity: 0;
+  /* Delayed fade-out so moving between slots does not flicker. */
+  transition: opacity 0.45s ease 0.35s, transform 250ms ease;
+}
+
+#hotbar.faded-ui:hover,
+#hotbar.faded-ui:focus-within,
+#hotbar.faded-ui.jinxed-drag-reveal {
+  opacity: 1;
+  transition: opacity 0.2s ease, transform 250ms ease;
+}
+
+/* Easier to find the invisible bar while dragging toward the bottom. */
+body.jinxed-dragging #hotbar.faded-ui {
+  min-height: 4.5rem;
+}
+
+/* Sidebar: nest rarely used tabs under Other (⋮) */
+#sidebar-tabs > menu > li.jinxed-sidebar-nested {
+  display: none !important;
+}
+
+#sidebar-tabs > menu > li.jinxed-sidebar-other-wrap {
+  position: relative;
+}
+
+#jinxed-sidebar-other.active,
+#jinxed-sidebar-other[aria-pressed="true"] {
+  color: var(--color-warm-2, #ff6400);
+}
+
+#jinxed-sidebar-other-panel {
+  display: none;
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 12rem;
+  padding: 6px;
+  gap: 4px;
+  flex-direction: column;
+  background: var(--color-cool-5-90, rgba(20, 20, 25, 0.92));
+  border: 1px solid var(--color-border-light-primary, #782e22);
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  pointer-events: all;
+}
+
+#jinxed-sidebar-other-panel.open {
+  display: flex;
+}
+
+#jinxed-sidebar-other-panel .jinxed-sidebar-other-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.4rem 0.55rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-light-1, #f0f0e0);
+  font: inherit;
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+  cursor: var(--cursor-pointer, pointer);
+}
+
+#jinxed-sidebar-other-panel .jinxed-sidebar-other-item > i {
+  width: 1.1rem;
+  text-align: center;
+  opacity: 0.9;
+}
+
+#jinxed-sidebar-other-panel .jinxed-sidebar-other-item:hover,
+#jinxed-sidebar-other-panel .jinxed-sidebar-other-item:focus-visible {
+  background: var(--color-cool-4, rgba(80, 80, 100, 0.55));
+  outline: none;
+}
+
+/* Tidbits loading overlay (early HTML splash lives in game.hbs) */
+#tidbits-loading-screen {
+  z-index: 99990 !important;
+}
+
+#tidbits-loading-screen.jinxed-tidbits-smooth {
+  transition: none;
+}
+#tidbits-loading-screen.jinxed-tidbits-smooth.jinxed-tidbits-hiding {
+  transition: opacity 0.65s ease;
+}
+/* While visible and not hiding, stay fully opaque even if Tidbits animates opacity. */
+#tidbits-loading-screen:not(.hidden):not(.jinxed-tidbits-hiding) {
+  opacity: 1 !important;
+}
+
+/* Tidbits loading screen: join-page banner + very soft DoF blur */
+#tidbits-loading-screen.jinxed-join-bg-screen {
+  background: #050505;
+  overflow: hidden;
+}
+
+#tidbits-loading-screen.jinxed-join-bg-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(30, 14, 10, 0.08), rgba(2, 3, 6, 0.62));
+}
+
+#tidbits-loading-screen .loading-screen-background.jinxed-join-bg,
+#tidbits-loading-screen .loading-screen-background.jinxed-join-bg.clean {
+  inset: -20px;
+  left: -20px;
+  bottom: -20px;
+  min-width: calc(100vw + 40px);
+  min-height: calc(100vh + 40px);
+  width: auto;
+  height: auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: blur(8px) brightness(0.42) saturate(0.9);
+  -webkit-mask-image: none;
+  mask-image: none;
+  transform: scale(1.05);
+  z-index: 0;
+}
+
+#tidbits-loading-screen.jinxed-join-bg-screen .loading-screen-content {
+  z-index: 1;
+  /* Tidbits shifts text left by (sidebar − scene-controls) to sit in the
+     canvas column; during our full-bleed overlay the sidebar is covered,
+     so keep true viewport centering. */
+  margin-left: 0 !important;
+}
+
+/* Simraki Radial Effects: keep condition hover tooltips above Foundry chrome.
+ * Upstream uses z-index: 1000, which often sits under UI layers. */
+.sre-tooltip {
+  z-index: 100000 !important;
+}
+
+/* Monks Little Details Token HUD conditions palette:
+ * Upstream locks height to ~8 rows with overflow:visible, so extra condition
+ * names sit outside the dark background ("half the background missing"). */
+#token-hud.monks-little-details .palette.status-effects,
+#token-hud.monks-little-details .status-effects.palette {
+  height: auto !important;
+  max-height: min(70vh, 560px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  width: max-content !important;
+  min-width: 520px !important;
+  background: rgba(0, 0, 0, 0.92) !important;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.65);
+  z-index: 120;
+}
+
+#hud.theme-light #token-hud.monks-little-details .palette.status-effects,
+#hud.theme-light #token-hud.monks-little-details .status-effects.palette {
+  background: rgba(255, 255, 255, 0.94) !important;
+}
+
+#token-hud.monks-little-details .status-effects .effect-name {
+  opacity: 0.9;
+  color: #f0f0f0;
+}
+
+#hud.theme-light #token-hud.monks-little-details .status-effects .effect-name {
+  color: #1a1a1a;
+}
+
+/* Argon Combat HUD: V14 Popover tooltips must not sit on / steal the spell icon.
+ * Force no pointer capture on the popover host; JS repositions beside the spell. */
+#tooltip.ech-tooltip-container,
+#tooltip.ech-tooltip-container.ech-tooltip-left,
+#tooltip.ech-tooltip-container.ech-tooltip-up,
+#tooltip.ech-tooltip-container.ech-tooltip-down,
+#tooltip.ech-tooltip-container.ech-tooltip-right,
+.ech-tooltip-container,
+.ech-tooltip-container .ech-tooltip,
+.ech-tooltip {
+  pointer-events: none !important;
+}
+
+#tooltip.ech-tooltip-container {
+  /* Let our JS control placement; ignore transform-origin scale shift onto the icon. */
+  transform: none !important;
+  max-width: min(400px, 42vw);
+}
+
+/* Keep description scrollable via wheel (JS scrolls it while pointer-events stay none). */
+#tooltip.ech-tooltip-container .ech-tooltip-description {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* DM Map Notes — mirror Token Notes window chrome + read-mode layout */
+#jinxed-dm-map-notes .window-content {
+  padding: 0;
+}
+
+#jinxed-dm-map-notes input:hover::-webkit-outer-spin-button,
+#jinxed-dm-map-notes input:hover::-webkit-inner-spin-button {
+  appearance: textfield;
+}
+
+#jinxed-dm-map-notes input[type="number"] {
+  width: min-content;
+  background: none;
+  padding: 0;
+  margin: 0;
+  margin-right: 1ch;
+  text-align: center;
+  height: unset;
+  line-height: unset;
+  border: none;
+}
+
+#jinxed-dm-map-notes .jinxed-dm-map-notes-container {
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+}
+
+#jinxed-dm-map-notes textarea.jinxed-dm-map-notes-text {
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+  resize: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+#jinxed-dm-map-notes textarea.jinxed-dm-map-notes-text.hidden,
+#jinxed-dm-map-notes .jinxed-dm-map-notes-read.hidden {
+  display: none;
+}
+
+#jinxed-dm-map-notes .jinxed-dm-map-notes-read {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: 0;
+  row-gap: 0.15em;
+  padding: 1rem;
+  min-height: 12rem;
+  box-sizing: border-box;
+  line-height: 1.35;
+}
+
+/* Flex line-break — never use <hr> (Foundry typography adds 1rem margins). */
+#jinxed-dm-map-notes .jinxed-dm-notes-break {
+  flex: 1 0 100%;
+  width: 100%;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  background: none !important;
+}
+
+#jinxed-dm-map-notes .token-notes-text-read-word {
+  margin-right: 1ch;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* DM Map Notes — canvas context menu */
+#jinxed-dm-note-context {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#jinxed-dm-note-context .context-items {
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  min-width: 10rem;
+}
+
+#jinxed-dm-note-context .context-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+}
+
+#jinxed-dm-note-context .context-item:hover {
+  background: var(--color-warm-2, rgba(255, 255, 255, 0.1));
+}
+
+/* Campaign Codex — flat sidebar tab counts (no light pill behind the number). */
+.campaign-codex .tab-item .tab-stat {
+  background: none;
+  border-radius: 0;
+  color: inherit;
+  margin-right: 0;
+  padding: 0;
+}
+
+.campaign-codex .tab-item.active .tab-stat {
+  background: none;
+  color: var(--cc-accent);
+}
+
+/* Campaign Codex — faction sheet left-sidebar quick nav (Known People / Quests). */
+.campaign-codex.tag-sheet .group-tree-container .jinx-faction-sidebar-nav,
+.campaign-codex.organization-sheet .group-tree-container .jinx-faction-sidebar-nav {
+  flex: 0 0 auto;
+  margin-bottom: 0.75rem;
+  padding: 0 12px 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--cc-sidebar-text, #fff) 20%, transparent);
+}
+
+.campaign-codex.tag-sheet .group-tree-container .jinx-faction-sidebar-nav .tab-item,
+.campaign-codex.organization-sheet .group-tree-container .jinx-faction-sidebar-nav .tab-item {
+  flex: 1 1 100%;
+}
+
+/* Campaign Codex — hide redundant "Information" heading (tab icon already labels the section). */
+.campaign-codex .tab-panel.info > .content-header > h2,
+.campaign-codex .group-tab-panel.info > .content-header > h2,
+.campaign-codex .group-tab-panel-selected-sheet.info > .content-header > h2 {
+  display: none;
+}
+
+.campaign-codex .tab-panel.info > .content-header:not(:has(.header-actions)),
+.campaign-codex .group-tab-panel.info > .content-header:not(:has(.header-actions)),
+.campaign-codex .group-tab-panel-selected-sheet.info > .content-header:not(:has(.header-actions)) {
+  display: none;
+}
+
+/* Info tab toolbar row — keeps widget/wiki actions in normal flow (upstream uses absolute "banner" tabs). */
+.campaign-codex .tab-panel.info > .content-header:has(.header-actions),
+.campaign-codex .group-tab-panel.info > .content-header:has(.header-actions),
+.campaign-codex .group-tab-panel-selected-sheet.info > .content-header:has(.header-actions) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 2.25rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0;
+  position: relative;
+}
+
+.campaign-codex .tab-panel.info > .content-header:has(.header-actions) .header-actions,
+.campaign-codex .group-tab-panel.info > .content-header:has(.header-actions) .header-actions,
+.campaign-codex .group-tab-panel-selected-sheet.info > .content-header:has(.header-actions) .header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-left: auto;
+  position: static;
+}
+
+.campaign-codex .tab-panel.info .content-header:has(.header-actions) .widget-tray-toggle,
+.campaign-codex .group-tab-panel.info .content-header:has(.header-actions) .widget-tray-toggle,
+.campaign-codex .group-tab-panel-selected-sheet.info .content-header:has(.header-actions) .widget-tray-toggle {
+  position: static;
+  top: auto;
+  left: auto;
+  margin-right: auto;
+}
+
+.campaign-codex .tab-panel.info .content-header .refresh-btn,
+.campaign-codex .group-tab-panel.info .content-header .refresh-btn,
+.campaign-codex .group-tab-panel-selected-sheet.info .content-header .refresh-btn {
+  position: static;
+  top: auto;
+  right: auto;
+  width: auto;
+  min-width: 2rem;
+  height: auto;
+  min-height: 2rem;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+}
+
+.campaign-codex .tab-panel.info .content-header .refresh-btn.jinx-fandom-wiki-import,
+.campaign-codex .group-tab-panel.info .content-header .refresh-btn.jinx-fandom-wiki-import,
+.campaign-codex .group-tab-panel-selected-sheet.info .content-header .refresh-btn.jinx-fandom-wiki-import {
+  margin-left: auto;
+}
+
+/* Campaign Codex — Improve Writing in prose-mirror editor toolbar. */
+.campaign-codex .editor menu.editor-menu button[data-action="jinx-improve-writing"] {
+  color: var(--color-text-light-highlight, #f0f0e0);
+}
+
+/* Campaign Codex — table headers must not break words letter-by-letter.
+ * Upstream sets overflow-wrap: anywhere on .journal-entry-content, which stacks
+ * short header labels (e.g. "Type") vertically in narrow columns. */
+.campaign-codex section.journal-entry-content table th,
+.campaign-codex section.journal-entry-content table thead td,
+.campaign-codex .cc-enriched table th,
+.campaign-codex .cc-enriched table thead td,
+.campaign-codex .editor-content.ProseMirror table th,
+.campaign-codex .editor-content.ProseMirror table thead td {
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
+  hyphens: none;
+}
+
+.campaign-codex section.journal-entry-content table,
+.campaign-codex .cc-enriched table,
+.campaign-codex .editor-content.ProseMirror table {
+  table-layout: auto;
+}
+
+/* Campaign Codex — Fandom wiki import dialog. */
+.jinx-fandom-wiki-import-app.campaign-codex .window-content {
+  padding: 0;
+}
+
+.jinx-fandom-wiki-import-app .dialog-content {
+  padding: 0;
+}
+
+.jinx-fandom-wiki-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px 4px;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-dialog-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--cc-accent30, rgba(255, 255, 255, 0.15));
+  border-radius: 8px;
+  background: var(--cc-accent10, rgba(255, 255, 255, 0.04));
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-dialog-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--cc-accent30, rgba(255, 255, 255, 0.12));
+  color: var(--cc-accent, #c9a227);
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-dialog-header-copy h3 {
+  margin: 0 0 4px;
+  font-family: var(--cc-font-heading, var(--font-h1));
+  font-size: var(--font-size-16);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cc-sidebar-text, var(--color-text-light-highlight));
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-dialog-header-copy p {
+  margin: 0;
+  color: var(--cc-text-muted, var(--color-text-light-primary));
+  line-height: 1.45;
+}
+
+.jinx-fandom-wiki-dialog .form-group label {
+  font-weight: 600;
+  color: var(--cc-sidebar-text, inherit);
+}
+
+.jinx-fandom-wiki-dialog .form-group input {
+  width: 100%;
+}
+
+.jinx-fandom-wiki-dialog .hint {
+  margin: 4px 0 0;
+  font-size: var(--font-size-12);
+  color: var(--cc-text-muted, var(--color-text-light-primary));
+  opacity: 0.85;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--cc-accent30, rgba(255, 255, 255, 0.15));
+  background: var(--cc-card-bg, rgba(0, 0, 0, 0.15));
+  min-height: 42px;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-preview[data-state="ready"] {
+  border-style: solid;
+  border-color: var(--cc-accent, #c9a227);
+  background: var(--cc-accent10, rgba(255, 255, 255, 0.05));
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-preview[data-state="error"] {
+  border-color: var(--color-level-error, #b0413e);
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-preview-icon {
+  margin-top: 2px;
+  color: var(--cc-accent, #c9a227);
+  flex: 0 0 auto;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-preview[data-state="error"] .jinx-wiki-preview-icon {
+  color: var(--color-level-error, #b0413e);
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-preview-text {
+  line-height: 1.4;
+  color: var(--cc-main-text, inherit);
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-fieldset legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 0;
+  font-weight: 600;
+  color: var(--cc-sidebar-text, inherit);
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-section-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-section-actions button {
+  border: 1px solid var(--cc-accent30, rgba(255, 255, 255, 0.15));
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cc-accent, #c9a227);
+  font-size: var(--font-size-11);
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-section-actions button:hover {
+  background: var(--cc-accent10, rgba(255, 255, 255, 0.06));
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-section-row,
+.jinx-fandom-wiki-dialog .jinx-wiki-options-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--cc-accent30, rgba(255, 255, 255, 0.15));
+  border-radius: 8px;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-option-pill,
+.jinx-fandom-wiki-dialog .jinx-wiki-section-pill {
+  margin: 0 !important;
+  flex: 1 1 auto;
+}
+
+.jinx-fandom-wiki-dialog .jinx-wiki-dialog-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px dashed var(--cc-accent30, rgba(255, 255, 255, 0.15));
+  color: var(--cc-text-muted, var(--color-text-light-primary));
+  font-size: var(--font-size-12);
+  grid-column: 1 / -1;
+}
+
+.jinx-fandom-wiki-import-app.campaign-codex .form-footer {
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--cc-accent30, rgba(255, 255, 255, 0.12));
+  background: var(--cc-main-bg, transparent);
+}
+
+.jinx-fandom-wiki-import-app.campaign-codex .form-footer button[data-action="ok"] {
+  background: var(--cc-accent, #c9a227);
+  border-color: var(--cc-accent, #c9a227);
+  color: var(--cc-main-bg, #1a1a1a);
+}
+
+.jinx-fandom-wiki-import-app.campaign-codex .form-footer button[data-action="ok"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Campaign Codex Hub — category folders under type groups */
+.campaign-codex.codex-hub .cc-hub-category-folder-tree {
+  margin-bottom: 0.35rem;
+}
+
+.campaign-codex.codex-hub .cc-hub-category-folder-group > summary {
+  padding-left: 0.65rem;
+}
+
+.campaign-codex.codex-hub .cc-hub-category-folder-group .cc-hub-folder-children .cc-hub-category-folder-group > summary {
+  padding-left: 1.15rem;
+}
+
+.campaign-codex.codex-hub .cc-hub-category-folder-heading[data-folder-id],
+.campaign-codex.codex-hub .cc-hub-type-group-heading[data-type-group-key] {
+  cursor: default;
+}
+
+.campaign-codex.codex-hub .cc-hub-type-contents > .cc-hub-type-items {
+  margin-top: 0.15rem;
+}
+

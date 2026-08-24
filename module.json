@@ -1,0 +1,111 @@
+{
+  "id": "jinxed-tweaks",
+  "title": "Jinxed Tweaks",
+  "description": "Last-loading overwrite layer that applies compatibility tweaks only when the target modules are installed and active.",
+  "version": "1.4.182",
+  "url": "https://github.com/JinxRunes/jinxed-tweaks",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.366"
+  },
+  "authors": [
+    {
+      "name": "JinxRunes",
+      "url": "https://github.com/JinxRunes"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "styles": [
+    "styles/tweaks.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ],
+  "documentTypes": {
+    "RegionBehavior": {
+      "temporaryElevation": {}
+    }
+  },
+  "relationships": {
+    "requires": [],
+    "optional": [
+      { "id": "ATL", "type": "module" },
+      { "id": "JB2A_DnD5e", "type": "module" },
+      { "id": "auraeffects", "type": "module" },
+      { "id": "autoanimations", "type": "module" },
+      { "id": "bossbar", "type": "module" },
+      { "id": "campaign-codex", "type": "module" },
+      { "id": "combat-tracker-dock", "type": "module" },
+      { "id": "combatbooster", "type": "module" },
+      { "id": "dae", "type": "module" },
+      { "id": "ddb-importer", "type": "module" },
+      { "id": "dfreds-convenient-effects", "type": "module" },
+      { "id": "dice-calculator", "type": "module" },
+      { "id": "dice-so-nice", "type": "module" },
+      { "id": "dynamic-soundscapes", "type": "module" },
+      { "id": "enhancedcombathud", "type": "module" },
+      { "id": "enhancedcombathud-dnd5e", "type": "module" },
+      { "id": "epic-rolls-5e", "type": "module" },
+      { "id": "foundry-taskbar", "type": "module" },
+      { "id": "fvtt-paper-doll-ui", "type": "module" },
+      { "id": "fxmaster", "type": "module" },
+      { "id": "hover-distance", "type": "module" },
+      { "id": "levels", "type": "module" },
+      { "id": "lib-dfreds-migrations", "type": "module" },
+      { "id": "lib-dfreds-ui-extender", "type": "module" },
+      { "id": "lib-wrapper", "type": "module" },
+      { "id": "lootsheet-simple", "type": "module" },
+      { "id": "mastercrafted", "type": "module" },
+      { "id": "midi-qol", "type": "module" },
+      { "id": "monks-active-tiles", "type": "module" },
+      { "id": "monks-combat-details", "type": "module" },
+      { "id": "monks-combat-marker", "type": "module" },
+      { "id": "monks-little-details", "type": "module" },
+      { "id": "monks-sound-enhancements", "type": "module" },
+      { "id": "monks-wall-enhancement", "type": "module" },
+      { "id": "multi-token-edit", "type": "module" },
+      { "id": "narrator-jukebox", "type": "module" },
+      { "id": "party-monitor-dock", "type": "module" },
+      { "id": "pin-cushion", "type": "module" },
+      { "id": "pirate-map-pack-six-artists", "type": "module" },
+      { "id": "plutonium", "type": "module" },
+      { "id": "quickdraw", "type": "module" },
+      { "id": "sequencer", "type": "module" },
+      { "id": "simple-timekeeping", "type": "module" },
+      { "id": "simraki-radial-effects", "type": "module" },
+      { "id": "socketlib", "type": "module" },
+      { "id": "splatter", "type": "module" },
+      { "id": "spotlight-omnisearch", "type": "module" },
+      { "id": "theripper-premium-hub", "type": "module" },
+      { "id": "tidbits", "type": "module" },
+      { "id": "token-attacher", "type": "module" },
+      { "id": "token-notes", "type": "module" },
+      { "id": "tokenflip", "type": "module" },
+      { "id": "tokenmagic", "type": "module" },
+      { "id": "tomcartos-the-endless-horizon", "type": "module" },
+      { "id": "torch", "type": "module" },
+      { "id": "vision-5e", "type": "module" },
+      { "id": "vtta-tokenizer", "type": "module" }
+    ]
+  },
+  "flags": {
+    "hotReload": {
+      "extensions": [
+        ".css",
+        ".mjs",
+        ".json"
+      ],
+      "paths": [
+        "scripts",
+        "styles",
+        "languages"
+      ]
+    }
+  }
+}
