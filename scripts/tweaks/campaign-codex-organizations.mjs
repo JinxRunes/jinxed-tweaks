@@ -43,18 +43,36 @@ function patchPrototypeMethod(proto, method, wrapperFactory, marker=PATCH_MARKER
 }
 
 /**
- * @param {string} target
+ * @param {object} ctor
+ * @param {string} method
+ * @param {Function} wrapperFactory receives (originalBound, ...args)
+ * @param {string} [marker]
+ */
+function patchStaticMethod(ctor, method, wrapperFactory, marker=PATCH_MARKER) {
+  if ( !ctor || typeof ctor[method] !== "function" || ctor[method]?.[marker] ) return false;
+  const original = ctor[method].bind(ctor);
+  const patched = function(...args) {
+    return wrapperFactory(original, ...args);
+  };
+  patched[marker] = true;
+  ctor[method] = patched;
+  return true;
+}
+
+/**
+ * @param {string|Function} target
  * @param {Function} wrapper
  * @param {"WRAPPER"|"MIXED"} [type]
  */
 function registerLibWrapper(target, wrapper, type="WRAPPER") {
   if ( typeof libWrapper?.register !== "function" || !game.modules.get("lib-wrapper")?.active ) return false;
+  const label = typeof target === "function" ? (target.name || "function") : target;
   try {
     libWrapper.register(MODULE_ID, target, wrapper, type);
     return true;
   }
   catch ( error ) {
-    log(`libWrapper ${target}: ${error?.message || error}`, "warn");
+    log(`libWrapper ${label}: ${error?.message || error}`, "warn");
     return false;
   }
 }
@@ -538,42 +556,55 @@ async function patchHub() {
 
 async function patchHelperSurfaces() {
   const helperUrl = campaignCodexUrl("scripts/helper.js");
+  const helper = await import(helperUrl);
 
-  registerLibWrapper(`${TARGET_MODULE_ID}.scripts.helper.js.getCodexType`, function(wrapped, ...args) {
-    const journal = args[0];
-    const explicit = String(journal?.getFlag?.(TARGET_MODULE_ID, "type") || "").trim().toLowerCase();
-    if ( explicit === ORGANIZATION_TYPE ) return ORGANIZATION_TYPE;
-    if ( journal?.flags?.core?.sheetClass === ORGANIZATION_SHEET_CLASS ) return ORGANIZATION_TYPE;
-    return wrapped(...args);
-  });
+  if ( typeof helper.getCodexType === "function" ) {
+    registerLibWrapper(helper.getCodexType, function(wrapped, ...args) {
+      const journal = args[0];
+      const explicit = String(journal?.getFlag?.(TARGET_MODULE_ID, "type") || "").trim().toLowerCase();
+      if ( explicit === ORGANIZATION_TYPE ) return ORGANIZATION_TYPE;
+      if ( journal?.flags?.core?.sheetClass === ORGANIZATION_SHEET_CLASS ) return ORGANIZATION_TYPE;
+      return wrapped(...args);
+    });
+  }
 
-  registerLibWrapper(`${TARGET_MODULE_ID}.scripts.helper.js.getCampaignCodexFolder`, function(wrapped, codexType) {
-    if ( codexType === ORGANIZATION_TYPE ) {
-      return findOrganizationFolder() || wrapped(codexType);
-    }
-    return wrapped(codexType);
-  });
+  if ( typeof helper.getCampaignCodexFolder === "function" ) {
+    registerLibWrapper(helper.getCampaignCodexFolder, function(wrapped, codexType, ...args) {
+      if ( codexType === ORGANIZATION_TYPE ) {
+        return findOrganizationFolder() || wrapped(codexType, ...args);
+      }
+      return wrapped(codexType, ...args);
+    });
+  }
 
-  registerLibWrapper(`${TARGET_MODULE_ID}.scripts.helper.js.createFromScene`, async function(wrapped, type, options={}) {
-    if ( type !== ORGANIZATION_TYPE ) return wrapped(type, options);
-    const { promptForName } = await import(helperUrl);
-    const name = await promptForName("Organization");
-    if ( !name ) return;
-    const doc = await createOrganizationJournal(null, name, false);
-    const folderId = String(options.folderId || "").trim() || null;
-    if ( doc && folderId && doc.folder?.id !== folderId ) await doc.update({ folder: folderId });
-    doc?.sheet.render(true);
-    return doc;
-  });
+  if ( typeof helper.createFromScene === "function" ) {
+    registerLibWrapper(helper.createFromScene, async function(wrapped, type, options={}) {
+      if ( type !== ORGANIZATION_TYPE ) return wrapped(type, options);
+      const { promptForName } = helper;
+      const name = await promptForName("Organization");
+      if ( !name ) return;
+      const doc = await createOrganizationJournal(null, name, false);
+      const folderId = String(options.folderId || "").trim() || null;
+      if ( doc && folderId && doc.folder?.id !== folderId ) await doc.update({ folder: folderId });
+      doc?.sheet.render(true);
+      return doc;
+    });
+  }
 
   const { TemplateComponents } = await import(campaignCodexUrl("scripts/sheets/template-components.js"));
-  registerLibWrapper(`${TARGET_MODULE_ID}.scripts.sheets.template-components.js.TemplateComponents.getAsset`, function(wrapped, assetKind, sheetType) {
+  const getAssetWrapper = function(wrapped, assetKind, sheetType) {
     if ( sheetType === ORGANIZATION_TYPE ) {
       if ( assetKind === "icon" ) return "fas fa-landmark";
       if ( assetKind === "image" ) return "modules/campaign-codex/assets/images/placeholder-tag.webp";
     }
     return wrapped(assetKind, sheetType);
-  }, "MIXED");
+  };
+
+  if ( typeof TemplateComponents?.getAsset === "function" ) {
+    if ( !registerLibWrapper(TemplateComponents.getAsset, getAssetWrapper, "MIXED") ) {
+      patchStaticMethod(TemplateComponents, "getAsset", getAssetWrapper);
+    }
+  }
 }
 
 async function patchJournalDirectoryButton() {
