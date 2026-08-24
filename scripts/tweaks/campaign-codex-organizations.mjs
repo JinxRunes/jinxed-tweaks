@@ -481,6 +481,122 @@ async function patchBaseSheetLinking() {
   }, `${PATCH_MARKER}GetSheetType`);
 }
 
+const HUB_TYPE_ORDER = ["npc", "quest", "group", "region", "location", "shop", "tag", "organization"];
+
+/**
+ * @param {object} doc
+ */
+function resolveHubDocument(doc) {
+  if ( !doc?.uuid ) return doc;
+  const journal = fromUuidSync(doc.uuid);
+  const resolvedType = getJournalCodexType(journal) || doc.type;
+  if ( !journal || resolvedType === doc.type ) return doc;
+
+  const data = journal.getFlag?.(TARGET_MODULE_ID, "data") || {};
+  const groupOverride = String(data.sheetTypeLabelOverride || "").trim()
+    || String(journal.getFlag?.(TARGET_MODULE_ID, "type") || "").trim().toLowerCase();
+
+  return {
+    ...doc,
+    type: resolvedType,
+    groupOverride,
+    sheetTypeLabelOverride: String(data.sheetTypeLabelOverride || "").trim(),
+  };
+}
+
+/**
+ * @param {Array<{ type: string, label: string, icon: string, count: number }>} stats
+ */
+function sortDashboardStats(stats) {
+  const order = new Map(HUB_TYPE_ORDER.map((type, index) => [type, index]));
+  return [...stats].sort((left, right) => {
+    const leftOrder = order.has(left.type) ? order.get(left.type) : HUB_TYPE_ORDER.length;
+    const rightOrder = order.has(right.type) ? order.get(right.type) : HUB_TYPE_ORDER.length;
+    if ( leftOrder !== rightOrder ) return leftOrder - rightOrder;
+    return left.label.localeCompare(right.label, undefined, { numeric: true });
+  });
+}
+
+/**
+ * @param {object} context
+ */
+async function enrichHubOrganizationContext(context) {
+  const { TemplateComponents } = await import(campaignCodexUrl("scripts/sheets/template-components.js"));
+  const { localize } = await import(campaignCodexUrl("scripts/helper.js"));
+  const orgLabel = localize("names.organizations") || "Organizations";
+  const orgIcon = TemplateComponents.getAsset("icon", ORGANIZATION_TYPE);
+  const orgJournals = game.journal.filter((journal) => getJournalCodexType(journal) === ORGANIZATION_TYPE);
+
+  const hubState = game.user?.getFlag?.("campaign-codex", "hubState") || {};
+  const requestedBrowse = String(hubState.browseType || "").trim().toLowerCase();
+  if ( requestedBrowse === ORGANIZATION_TYPE && !context.isTypeBrowser ) {
+    context.isHome = false;
+    context.isTypeBrowser = true;
+    context.typeBrowser = {
+      type: ORGANIZATION_TYPE,
+      label: orgLabel,
+      icon: orgIcon,
+      items: orgJournals.map((journal) => ({
+        id: journal.id,
+        uuid: journal.uuid,
+        name: journal.name,
+        img: journal.getFlag?.(TARGET_MODULE_ID, "image") || TemplateComponents.getAsset("image", ORGANIZATION_TYPE),
+        showImage: true,
+        tags: [],
+      })),
+    };
+  }
+  else if ( context.typeBrowser?.type === ORGANIZATION_TYPE ) {
+    context.typeBrowser = {
+      ...context.typeBrowser,
+      label: orgLabel,
+      icon: orgIcon,
+      items: orgJournals.map((journal) => ({
+        id: journal.id,
+        uuid: journal.uuid,
+        name: journal.name,
+        img: journal.getFlag?.(TARGET_MODULE_ID, "image") || TemplateComponents.getAsset("image", ORGANIZATION_TYPE),
+        showImage: true,
+        tags: [],
+      })),
+    };
+  }
+
+  const stats = Array.isArray(context.dashboardStats) ? [...context.dashboardStats] : [];
+  const orgIndex = stats.findIndex((entry) => entry.type === ORGANIZATION_TYPE);
+  const orgCount = orgJournals.length;
+
+  if ( orgIndex === -1 ) {
+    stats.push({
+      type: ORGANIZATION_TYPE,
+      label: orgLabel,
+      icon: orgIcon,
+      count: orgCount,
+    });
+  }
+  else {
+    stats[orgIndex] = {
+      ...stats[orgIndex],
+      label: orgLabel,
+      icon: orgIcon,
+      count: orgCount,
+    };
+  }
+
+  const tagIndex = stats.findIndex((entry) => entry.type === "tag");
+  if ( tagIndex >= 0 && orgCount > 0 ) {
+    const miscounted = orgJournals.filter((journal) => journal.getFlag?.(TARGET_MODULE_ID, "type") === "tag").length;
+    if ( miscounted > 0 ) {
+      stats[tagIndex] = {
+        ...stats[tagIndex],
+        count: Math.max(0, (stats[tagIndex].count || 0) - miscounted),
+      };
+    }
+  }
+
+  context.dashboardStats = sortDashboardStats(stats);
+}
+
 async function patchHub() {
   const [{ CampaignCodexHub }] = await Promise.all([
     import(campaignCodexUrl("scripts/campaign-codex-hub.js")),
@@ -490,16 +606,14 @@ async function patchHub() {
   const { createFromScene } = await import(campaignCodexUrl("scripts/helper.js"));
 
   patchPrototypeMethod(CampaignCodexHub.prototype, "_getDocumentGroup", (original) => function jinxOrgHubGroup(doc) {
-    const group = original.call(this, doc);
-    if ( doc.type !== ORGANIZATION_TYPE ) return group;
-    return {
-      ...group,
-      key: `type:${ORGANIZATION_TYPE}`,
-      label: localize("names.organizations") || "Organizations",
-      icon: TemplateComponents.getAsset("icon", ORGANIZATION_TYPE),
-      sortKey: "type:007:organization",
-    };
+    return original.call(this, resolveHubDocument(doc));
   }, `${PATCH_MARKER}HubGroup`);
+
+  patchPrototypeMethod(CampaignCodexHub.prototype, "_prepareContext", (original) => async function jinxOrgHubPrepareContext(options) {
+    const context = await original.call(this, options);
+    await enrichHubOrganizationContext(context);
+    return context;
+  }, `${PATCH_MARKER}HubContext`);
 
   patchPrototypeMethod(CampaignCodexHub.prototype, "_promptCreateSheet", (original) => async function jinxOrgHubCreateSheet(folderId=null) {
     const createType = await foundry.applications.api.DialogV2.prompt({
@@ -604,6 +718,18 @@ async function patchHelperSurfaces() {
     if ( !registerLibWrapper(TemplateComponents.getAsset, getAssetWrapper, "MIXED") ) {
       patchStaticMethod(TemplateComponents, "getAsset", getAssetWrapper);
     }
+  }
+
+  const journalProto = foundry.documents?.JournalEntry?.prototype;
+  if ( journalProto?.getFlag ) {
+    registerLibWrapper(journalProto.getFlag, function(wrapped, scope, key, ...args) {
+      const value = wrapped(scope, key, ...args);
+      if ( scope !== TARGET_MODULE_ID || key !== "type" ) return value;
+      const explicit = String(value || "").trim().toLowerCase();
+      if ( explicit ) return value;
+      if ( this.flags?.core?.sheetClass === ORGANIZATION_SHEET_CLASS ) return ORGANIZATION_TYPE;
+      return value;
+    }, "MIXED");
   }
 }
 

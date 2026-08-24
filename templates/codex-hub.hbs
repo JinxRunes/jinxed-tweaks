@@ -77,25 +77,38 @@
                   <span class="cc-hub-type-count">{{this.count}}</span>
                 </summary>
                 {{#if this.isOpen}}
-                  <div class="cc-hub-folder-contents cc-hub-type-contents">
-                    {{#if this.folderChildren.length}}
-                      <div class="cc-hub-folder-children cc-hub-category-folder-tree">
-                        {{> ccHubFolderGroups nodes=this.folderChildren categoryFolders=true}}
-                      </div>
-                    {{/if}}
-                    {{#if this.rootItems.length}}
-                      <div class="cc-hub-type-items">
-                        {{#each this.rootItems}}
-                          <button type="button" class="cc-hub-sheet-link {{#if this.isSelected}}active{{/if}}" data-action="selectSheet"
-                                  data-uuid="{{this.uuid}}" data-search-match-tab="{{this.searchMatchTab}}"
-                                  draggable="true" data-drag="true" data-entry-id="{{this.id}}">
-                            <i class="{{this.icon}}"></i>
-                            <span>{{this.name}}</span>
-                          </button>
-                        {{/each}}
-                      </div>
-                    {{/if}}
-                  </div>
+                  {{#if this.hasCategoryFolders}}
+                    <div class="cc-hub-folder-contents cc-hub-type-contents">
+                      {{#if this.folderChildren.length}}
+                        <div class="cc-hub-folder-children cc-hub-category-folder-tree">
+                          {{> ccHubFolderGroups nodes=this.folderChildren categoryFolders=true}}
+                        </div>
+                      {{/if}}
+                      {{#if this.rootItems.length}}
+                        <div class="cc-hub-type-items">
+                          {{#each this.rootItems}}
+                            <button type="button" class="cc-hub-sheet-link {{#if this.isSelected}}active{{/if}}" data-action="selectSheet"
+                                    data-uuid="{{this.uuid}}" data-search-match-tab="{{this.searchMatchTab}}"
+                                    draggable="true" data-drag="true" data-entry-id="{{this.id}}">
+                              <i class="{{this.icon}}"></i>
+                              <span>{{this.name}}</span>
+                            </button>
+                          {{/each}}
+                        </div>
+                      {{/if}}
+                    </div>
+                  {{else}}
+                    <div class="cc-hub-type-items">
+                      {{#each this.items}}
+                        <button type="button" class="cc-hub-sheet-link {{#if this.isSelected}}active{{/if}}" data-action="selectSheet"
+                                data-uuid="{{this.uuid}}" data-search-match-tab="{{this.searchMatchTab}}"
+                                draggable="true" data-drag="true" data-entry-id="{{this.id}}">
+                          <i class="{{this.icon}}"></i>
+                          <span>{{this.name}}</span>
+                        </button>
+                      {{/each}}
+                    </div>
+                  {{/if}}
                 {{/if}}
               </details>
             {{/each}}

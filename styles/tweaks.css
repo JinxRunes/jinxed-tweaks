@@ -674,9 +674,12 @@ body.jinxed-dragging #hotbar.faded-ui {
   padding-left: 1.15rem;
 }
 
-.campaign-codex.codex-hub .cc-hub-category-folder-heading[data-folder-id],
-.campaign-codex.codex-hub .cc-hub-type-group-heading[data-type-group-key] {
+.campaign-codex.codex-hub .cc-hub-category-folder-heading[data-folder-id] {
   cursor: default;
+}
+
+.campaign-codex.codex-hub .cc-hub-type-group-heading[data-type-group-key] {
+  cursor: pointer;
 }
 
 .campaign-codex.codex-hub .cc-hub-type-contents > .cc-hub-type-items {
