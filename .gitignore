@@ -3,3 +3,7 @@ Thumbs.db
 *.log
 .env
 .env.*
+
+# Private play.jinx.gg CDN layer — kept on the VPS deploy mirror only, not published.
+scripts/tweaks/core-cdn.mjs
+scripts/tweaks/core-cdn.test.mjs

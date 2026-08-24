@@ -30,7 +30,6 @@ import {applyCoreToolclipTweaks} from "./core-toolclips.mjs";
 import {applyCoreCompatNoiseTweaks} from "./core-compat-noise.mjs";
 import {applyCoreNameplateTweaks} from "./core-nameplates.mjs";
 import {applyCoreOffLevelChromeTweaks} from "./core-offlevel-chrome.mjs";
-import {applyCoreCdnTweaks} from "./core-cdn.mjs";
 import {applyCoreLoadThrottleTweaks} from "./core-load-throttle.mjs";
 import {applyCoreLoadTraceTweaks} from "./core-load-trace.mjs";
 import {applyCoreTokenFilterTweaks} from "./core-token-filters.mjs";
@@ -154,18 +153,6 @@ export const TWEAKS = [
     label: "Core Compat Noise",
     when: "init",
     apply: () => applyCoreCompatNoiseTweaks()
-  },
-  {
-    id: "core",
-    label: "Core CDN",
-    when: "init",
-    apply: () => applyCoreCdnTweaks()
-  },
-  {
-    id: "core",
-    label: "Core CDN (setup rebind)",
-    when: "setup",
-    apply: () => applyCoreCdnTweaks()
   },
   {
     id: "core",

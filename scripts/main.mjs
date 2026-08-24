@@ -1,6 +1,5 @@
 import {TWEAKS} from "./tweaks/registry.mjs";
 import {installAllNoiseFilters} from "./tweaks/core-compat-noise.mjs";
-import {installCoreCdn} from "./tweaks/core-cdn.mjs";
 import {registerDaeSettings} from "./tweaks/dae.mjs";
 import {registerLoadThrottleSettings} from "./tweaks/core-load-throttle.mjs";
 import {registerLoadTraceSettings} from "./tweaks/core-load-trace.mjs";
@@ -15,8 +14,10 @@ const MODULE_ID = "jinxed-tweaks";
 
 // Before init hooks / canvas fog extract: drop known non-breaking console spam.
 installAllNoiseFilters();
-// Before any scene texture load: rewrite Assets → CDN (avoid play→CDN 302 CORS bug).
-installCoreCdn();
+// Optional private deploy overlay (not in public repo): assets.jinx.gg CDN rewrite.
+import("./tweaks/core-cdn.mjs")
+  .then(({installCoreCdn}) => installCoreCdn())
+  .catch(() => {});
 
 /**
  * @param {string} moduleId

@@ -2,7 +2,7 @@
   "id": "jinxed-tweaks",
   "title": "Jinxed Tweaks",
   "description": "Last-loading overwrite layer that applies compatibility tweaks only when the target modules are installed and active.",
-  "version": "1.4.184",
+  "version": "1.4.185",
   "url": "https://github.com/JinxRunes/jinxed-tweaks",
   "compatibility": {
     "minimum": "14",

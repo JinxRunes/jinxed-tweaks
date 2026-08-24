@@ -11,7 +11,7 @@ Drop the folder into `Data/modules/` as `jinxed-tweaks`, or install from a relea
 ## What it does
 
 - **Compatibility layer** — small fixes and overrides for modules like Campaign Codex, Midi-QOL, DAE, Argon Combat HUD, DDB Importer, and others, gated on `game.modules.get(id)?.active`.
-- **Core tweaks** — CDN media rewrite, nameplate placement, token HUD options, sidebar behavior, load tracing, and similar quality-of-life patches under `scripts/tweaks/core-*.mjs`.
+- **Core tweaks** — nameplate placement, token HUD options, sidebar behavior, load tracing, and similar quality-of-life patches under `scripts/tweaks/core-*.mjs`.
 - **Campaign Codex** — Fandom wiki import, hub folders, Organizations sheet type, sidebar delete, auto-linking, and related UI fixes (requires Campaign Codex active).
 - **Hot reload** — CSS, JS, and language files reload in dev without restarting Foundry.
 
@@ -34,6 +34,7 @@ jinxed-tweaks/
 ## Notes
 
 - Module id: `jinxed-tweaks`
+- The public repo omits the optional `scripts/tweaks/core-cdn.mjs` overlay used on the jinx.gg Foundry host (CDN media rewrite). `main.mjs` loads it when present; VPS deploys keep that file locally.
 - Tweaks run on `init`, `setup`, or `ready` (mostly `ready`), deferred one tick so other modules register first.
 - This module is tailored to a specific Foundry setup; optional relationships in `module.json` reflect modules commonly present on that server.
 

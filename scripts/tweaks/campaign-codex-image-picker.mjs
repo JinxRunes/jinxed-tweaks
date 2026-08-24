@@ -6,7 +6,7 @@
  * menu appears to do nothing. Stored CDN URLs also break directory inference.
  */
 
-import { toFilePickerCurrent } from "./core-cdn.mjs";
+import { toFilePickerCurrent } from "./media-url.mjs";
 
 const TARGET_MODULE_ID = "campaign-codex";
 const PATCH_MARKER = "__jinxCodexImagePicker";
